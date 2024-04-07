@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom, #87CEEB, #4682B4);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            position: relative;
+        }
+
+        canvas {
+            border: 2px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            margin: 20px auto;
+            background-color: #2ecc71;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #winnerMessage {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pongCanvas" width="800" height="400"></canvas>
+    <button id="startButton">Start</button>
+    <div id="winnerMessage"></div>
+
+    <script>
+        const canvas = document.getElementById('pongCanvas'),
+                ctx = canvas.getContext('2d'),
+                startButton = document.getElementById('startButton'),
+                winnerMessage = document.getElementById('winnerMessage'),
+                paddleHeight = 60,
+                paddleWidth = 10,
+                paddleSpeed = 8,
+                ballSize = 10,
+                maxScore = 5;
+        let gameActive = false,
+            leftPaddleY = canvas.height / 2 - paddleHeight / 2,
+            rightPaddleY = canvas.height / 2 - paddleHeight / 2,
+            ballX = canvas.width / 2,
+            ballY = canvas.height / 2,
+            ballSpeedX = 5,
+            ballSpeedY = 5,
+            playerScore = 0,
+            computerScore = 0;
+
+        function startGame() {
+            gameActive = true;
+            resetBall();
+            draw();
+            startButton.disabled = true;
+            winnerMessage.style.display = 'none';
+        }
+
+        startButton.addEventListener('click', startGame);
+
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX = -ballSpeedX;
+        }
+
+        function endGame() {
+            gameActive = false;
+            startButton.disabled = false;
+            const winner = playerScore === maxScore ? 'Player' : 'Computer';
+            winnerMessage.textContent = `${winner} wins!`;
+            winnerMessage.style.display = 'block';
+            playerScore = 0;
+            computerScore = 0;
+            return;
+        }
+
+        function draw() {
+            if (gameActive) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
+            ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.font = '20px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText(`Player: ${playerScore}`, 50, 30);
+            ctx.fillText(`Computer: ${computerScore}`, canvas.width - 180, 30);
+
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            if(ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            if((ballX - ballSize < paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) ||
+                (ballX + ballSize > canvas.width - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight)) {
+                    ballSpeedX = -ballSpeedX;
+            }
+
+            if(ballX - ballSize < 0) {
+                computerScore++;
+                resetBall();
+            } else if(ballX + ballSize > canvas.width) {
+                playerScore++;
+                resetBall();
+            }
+
+            if(ballY > rightPaddleY + paddleHeight / 2) {
+                rightPaddleY += paddleSpeed;
+            } else {
+                rightPaddleY -= paddleSpeed;
+            }
+
+            leftPaddleY = Math.max(0, Math.min(leftPaddleY, canvas.height - paddleHeight));
+            rightPaddleY = Math.max(0, Math.min(rightPaddleY, canvas.height - rightPaddleY));
+
+            if(playerScore === maxScore || computerScore === maxScore) {
+                endGame();
+                return;
+            }
+
+            if(gameActive) {
+                requestAnimationFrame(draw);
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if(e.key === "ArrowUp" && leftPaddleY > 0) {
+                leftPaddleY -= paddleSpeed + 16;
+            } 
+            
+            if(e.key === "ArrowDown" && leftPaddleY < canvas.height - paddleHeight) {
+                leftPaddleY += paddleSpeed + 16;
+            }
+        });
+
+        draw()
+    </script>
+</body>
+</html>

@@ -69,7 +69,7 @@
                 winnerMessage = document.getElementById('winnerMessage'),
                 paddleHeight = 60,
                 paddleWidth = 10,
-                paddleSpeed = 8,
+                paddleSpeed = 12,
                 ballSize = 10,
                 maxScore = 5;
         let gameActive = false,
@@ -80,7 +80,8 @@
             ballSpeedX = 5,
             ballSpeedY = 5,
             playerScore = 0,
-            computerScore = 0;
+            computerScore = 0,
+            keys = {};
 
         function startGame() {
             gameActive = true;
@@ -155,8 +156,15 @@
                 rightPaddleY -= paddleSpeed;
             }
 
+            if (keys['ArrowUp']) {
+                leftPaddleY -= paddleSpeed;
+            }
+            if (keys['ArrowDown']) {
+                leftPaddleY += paddleSpeed;
+            }
+
             leftPaddleY = Math.max(0, Math.min(leftPaddleY, canvas.height - paddleHeight));
-            rightPaddleY = Math.max(0, Math.min(rightPaddleY, canvas.height - rightPaddleY));
+            rightPaddleY = Math.max(0, Math.min(rightPaddleY, canvas.height - paddleHeight));
 
             if(playerScore === maxScore || computerScore === maxScore) {
                 endGame();
@@ -169,16 +177,14 @@
         }
 
         window.addEventListener('keydown', (e) => {
-            if(e.key === "ArrowUp" && leftPaddleY > 0) {
-                leftPaddleY -= paddleSpeed + 16;
-            } 
-            
-            if(e.key === "ArrowDown" && leftPaddleY < canvas.height - paddleHeight) {
-                leftPaddleY += paddleSpeed + 16;
-            }
+            keys[e.key] = true;
         });
 
-        draw()
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        draw();
     </script>
 </body>
 </html>
